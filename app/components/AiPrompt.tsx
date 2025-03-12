@@ -82,7 +82,6 @@ export default function AiPrompt() {
       // Prepare the prompt with context
       const prompt = createPrompt(userMessage.content);
 
-      // TODO: Replace this with your actual API endpoint
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -91,11 +90,11 @@ export default function AiPrompt() {
         body: JSON.stringify(prompt)
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response from AI');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.details || 'Failed to get response from AI');
+      }
       
       const botMessage: Message = {
         content: data.response || "I apologize, but I'm having trouble responding right now.",
@@ -106,7 +105,9 @@ export default function AiPrompt() {
     } catch (error) {
       console.error('Error getting AI response:', error);
       const errorMessage: Message = {
-        content: "I apologize, but I'm having trouble responding right now. Please try again later.",
+        content: error instanceof Error 
+          ? `I apologize, but I encountered an error: ${error.message}`
+          : "I apologize, but I'm having trouble responding right now. Please try again later.",
         isBot: true,
         timestamp: new Date()
       };
